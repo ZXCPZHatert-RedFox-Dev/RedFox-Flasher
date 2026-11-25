@@ -12,9 +12,9 @@ while true; do
     echo "       🦊 REDFOX-FLASHER (RMX3624 / Arch Linux)      "
     echo "===================================================="
     echo "1) 📊 Живая диагностика телефона по ADB (Ядро, BBR, Яркость)"
-    echo "2) 📥 Скачать свежие релизы с GitHub (Ядро v16 + Optimizer v1.3 + Recovery)"
+    echo "2) 📥 Скачать свежие релизы с GitHub (Ядро v17 + Optimizer v1.4 + Recovery)"
     echo "3) 💾 Сделать резервную копию разделов (boot + vendor_boot + vbmeta)"
-    echo "4) ⚡ Прошить ядро (boot_redfox_rev16_signed.img) через Fastboot"
+    echo "4) ⚡ Прошить ядро (boot_redfox_rev17_signed.img) через Fastboot"
     echo "5) 🛠️  Прошить Red-Fox Recovery (vendor_boot.img / recovery.img)"
     echo "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     echo "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
@@ -38,7 +38,7 @@ while true; do
             ;;
         2)
             echo -e "\n--- Скачивание релизов в $WORK_DIR ---"
-            gh release download v16.0-RedFox-Ultimate --repo "$REPO_KERNEL" -D "$WORK_DIR" --clobber
+            gh release download v17.0-RedFox-Ultimate --repo "$REPO_KERNEL" -D "$WORK_DIR" --clobber
             RUN_ID=$(gh run list --repo "$REPO_REC" --status success -L 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || true)
             if [ -n "$RUN_ID" ]; then
                 gh run download "$RUN_ID" --repo "$REPO_REC" -D "$WORK_DIR/recovery"
@@ -67,8 +67,8 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         4)
-            IMG="$WORK_DIR/boot_redfox_rev16_signed.img"
-            [ ! -f "$IMG" ] && gh release download v16.0-RedFox-Ultimate --repo "$REPO_KERNEL" -p "boot_redfox_rev16_signed.img" -D "$WORK_DIR" --clobber
+            IMG="$WORK_DIR/boot_redfox_rev17_signed.img"
+            [ ! -f "$IMG" ] && gh release download v17.0-RedFox-Ultimate --repo "$REPO_KERNEL" -p "boot_redfox_rev17_signed.img" -D "$WORK_DIR" --clobber
             echo "Переведите телефон в режим Bootloader (Fastboot) и нажмите Enter..."
             read -r
             fastboot flash boot "$IMG" && fastboot reboot

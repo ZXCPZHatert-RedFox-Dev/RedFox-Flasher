@@ -30,9 +30,9 @@ while ($true) {
     Write-Host "       🦊 REDFOX-FLASHER (RMX3624 / Windows)        " -ForegroundColor Cyan
     Write-Host "====================================================" -ForegroundColor Cyan
     Write-Host "1) 📊 Живая диагностика телефона по ADB (Ядро, BBR, Яркость)"
-    Write-Host "2) 📥 Скачать свежие релизы с GitHub (Ядро v16 + Optimizer v1.3 + Recovery)"
+    Write-Host "2) 📥 Скачать свежие релизы с GitHub (Ядро v17 + Optimizer v1.4 + Recovery)"
     Write-Host "3) 💾 Сделать резервную копию разделов (boot + vendor_boot + vbmeta)"
-    Write-Host "4) ⚡ Прошить ядро (boot_redfox_rev16_signed.img) через Fastboot"
+    Write-Host "4) ⚡ Прошить ядро (boot_redfox_rev17_signed.img) через Fastboot"
     Write-Host "5) 🛠️  Прошить Red-Fox Recovery (vendor_boot.img / recovery.img)"
     Write-Host "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     Write-Host "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
@@ -71,7 +71,7 @@ while ($true) {
             Read-Host "Нажмите Enter..."
         }
         "4" {
-            $img = Join-Path $WorkDir "boot_redfox_rev16_signed.img"
+            $img = Join-Path $WorkDir "boot_redfox_rev17_signed.img"
             if (-not (Test-Path $img)) {
                 Write-Host "Сначала скачайте файлы через пункт 2!" -ForegroundColor Red
             } else {
