@@ -103,9 +103,19 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         8)
-            echo "🚑 Запуск аварийной прошивки через BROM (spd_dump)..."
-            echo "Зажмите на телефоне Питание + Громкость Вверх на 8-10 сек, затем удерживайте Громкость Вниз при подключённом кабеле."
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img reset
+            echo "🚑 Автоматический перевод в BROM и прошивка через spd_dump..."
+            dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
+            if adb get-state 1>/dev/null 2>&1; then
+                echo "🔄 Перевожу телефон из ADB в режим прошивки BROM..."
+                (sleep 1 && (adb reboot edl 2>/dev/null || adb reboot)) &
+            elif fastboot devices | grep -q "fastboot"; then
+                echo "🔄 Перевожу телефон из Fastboot в режим прошивки BROM..."
+                (sleep 1 && fastboot reboot) &
+            else
+                echo "⚠️ Телефон не виден по ADB/Fastboot — зажмите Питание + Громкость Вверх + Вниз на 10 сек (затем отпустите Питание)."
+            fi
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img reset
+            rm -f /tmp/clean_misc.bin
             ;;
         0) exit 0 ;;
     esac
