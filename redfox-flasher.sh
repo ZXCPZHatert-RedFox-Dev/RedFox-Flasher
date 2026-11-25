@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_KERNEL="ZXCPZHatert-RedFox-Dev-RMX3624/RMX3624-GKI-5.4-Kernel"
-REPO_REC="ZXCPZHatert-RedFox-Dev-RMX3624/Red-Fox_RECOVERYRMX3624"
+REPO_KERNEL="ZXCPZHatert-RedFox-Dev/RMX3624-GKI-5.4-Kernel"
+REPO_REC="ZXCPZHatert-RedFox-Dev/Red-Fox_RECOVERYRMX3624"
 WORK_DIR="$HOME/RedFox-Builds"
 mkdir -p "$WORK_DIR/backups"
 
