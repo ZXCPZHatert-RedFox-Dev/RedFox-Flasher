@@ -103,16 +103,15 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         8)
-            echo "🚑 Автоматический перевод в BROM и прошивка через spd_dump..."
+            echo "🚑 Прошивка ядра (boot_redfox_rev18_signed.img) через BROM (spd_dump)..."
             dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
             if adb get-state 1>/dev/null 2>&1; then
-                echo "🔄 Перевожу телефон из ADB в режим прошивки BROM..."
-                (sleep 1 && (adb reboot autodloader 2>/dev/null || adb reboot)) &
-            elif fastboot devices | grep -q "fastboot"; then
-                echo "🔄 Перевожу телефон из Fastboot в режим прошивки BROM..."
-                (sleep 1 && fastboot reboot) &
+                echo "🔌 Автоматически выключаю телефон через ADB (reboot -p)..."
+                adb shell reboot -p 2>/dev/null || adb reboot -p 2>/dev/null
+                sleep 4
+                echo "👉 Телефон выключен! Теперь просто зажмите 2 кнопки (Громкость Вверх + Вниз) — spd_dump уже ждёт!"
             else
-                echo "⚠️ Телефон не виден по ADB/Fastboot — зажмите Питание + Громкость Вверх + Вниз на 10 сек (затем отпустите Питание)."
+                echo "👉 Выключите телефон, затем зажмите 2 кнопки (Громкость Вверх + Вниз) и подключите кабель."
             fi
             cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
             rm -f /tmp/clean_misc.bin
