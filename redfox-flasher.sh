@@ -12,13 +12,13 @@ while true; do
     echo "       🦊 REDFOX-FLASHER (RMX3624 / Arch Linux)      "
     echo "===================================================="
     echo "1) 📊 Живая диагностика телефона по ADB (Ядро, BBR, Яркость)"
-    echo "2) 📥 Скачать свежие релизы с GitHub (Ядро v17 + Optimizer v1.4 + Recovery)"
+    echo "2) 📥 Скачать свежие релизы с GitHub (Ядро v18 + Optimizer v1.4 + Recovery)"
     echo "3) 💾 Сделать резервную копию разделов (boot + vendor_boot + vbmeta)"
-    echo "4) ⚡ Прошить ядро (boot_redfox_rev17_signed.img) через Fastboot"
+    echo "4) ⚡ Прошить ядро (boot_redfox_rev18_signed.img) через Fastboot"
     echo "5) 🛠️  Прошить Red-Fox Recovery (vendor_boot.img / recovery.img)"
     echo "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     echo "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
-    echo "8) 🚑 Прошить ядро (boot_redfox_rev17_signed.img) через BROM (spd_dump)
+    echo "8) 🚑 Прошить ядро (boot_redfox_rev18_signed.img) через BROM (spd_dump)
 0) Выход"
     echo "----------------------------------------------------"
     read -rp "Выберите действие [0-8]: " CHOICE
@@ -39,7 +39,7 @@ while true; do
             ;;
         2)
             echo -e "\n--- Скачивание релизов в $WORK_DIR ---"
-            gh release download v17.0-RedFox-Ultimate --repo "$REPO_KERNEL" -D "$WORK_DIR" --clobber
+            gh release download v18.0-RedFox-Ultimate --repo "$REPO_KERNEL" -D "$WORK_DIR" --clobber
             RUN_ID=$(gh run list --repo "$REPO_REC" --status success -L 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || true)
             if [ -n "$RUN_ID" ]; then
                 gh run download "$RUN_ID" --repo "$REPO_REC" -D "$WORK_DIR/recovery"
@@ -68,8 +68,8 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         4)
-            IMG="$WORK_DIR/boot_redfox_rev17_signed.img"
-            [ ! -f "$IMG" ] && gh release download v17.0-RedFox-Ultimate --repo "$REPO_KERNEL" -p "boot_redfox_rev17_signed.img" -D "$WORK_DIR" --clobber
+            IMG="$WORK_DIR/boot_redfox_rev18_signed.img"
+            [ ! -f "$IMG" ] && gh release download v18.0-RedFox-Ultimate --repo "$REPO_KERNEL" -p "boot_redfox_rev18_signed.img" -D "$WORK_DIR" --clobber
             echo "Переведите телефон в режим Bootloader (Fastboot) и нажмите Enter..."
             read -r
             fastboot flash boot "$IMG" && fastboot reboot
@@ -107,14 +107,14 @@ while true; do
             dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
             if adb get-state 1>/dev/null 2>&1; then
                 echo "🔄 Перевожу телефон из ADB в режим прошивки BROM..."
-                (sleep 1 && (adb reboot edl 2>/dev/null || adb reboot)) &
+                (sleep 1 && (adb reboot autodloader 2>/dev/null || adb reboot)) &
             elif fastboot devices | grep -q "fastboot"; then
                 echo "🔄 Перевожу телефон из Fastboot в режим прошивки BROM..."
                 (sleep 1 && fastboot reboot) &
             else
                 echo "⚠️ Телефон не виден по ADB/Fastboot — зажмите Питание + Громкость Вверх + Вниз на 10 сек (затем отпустите Питание)."
             fi
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img reset
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
             rm -f /tmp/clean_misc.bin
             ;;
         0) exit 0 ;;
