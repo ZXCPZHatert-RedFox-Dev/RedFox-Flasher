@@ -114,7 +114,7 @@ while true; do
             else
                 echo "⚠️ Телефон не виден по ADB/Fastboot — зажмите Питание + Громкость Вверх + Вниз на 10 сек (затем отпустите Питание)."
             fi
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img reset
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev17_signed.img reset
             rm -f /tmp/clean_misc.bin
             ;;
         0) exit 0 ;;
