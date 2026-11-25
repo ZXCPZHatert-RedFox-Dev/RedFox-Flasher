@@ -19,7 +19,7 @@ while true; do
     echo "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     echo "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
     echo "8) 🚑 Прошить ЛЮБОЕ ядро (Кастом / Сток / Свой .img) через BROM (spd_dump)
-9) 🔄 Цикл чистой установки GSI (Сток Boot -> Рекавери/Wipe -> Ядро RedFox rev18)
+9) 🔄 Цикл чистой установки GSI (Recovery → Enter fastboot / Прошивка / Wipe / Poweroff → Ядро / Загрузка в систему)
 0) Выход"
     echo "----------------------------------------------------"
     read -rp "Выберите действие [0-9]: " CHOICE
