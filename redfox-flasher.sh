@@ -135,26 +135,43 @@ while true; do
             ;;
         9)
             echo "===================================================="
-            echo "🔄 ЦИКЛ ЧИСТОЙ УСТАНОВКИ GSI ДЛЯ RMX3624"
+            echo "🔄 ЦИКЛ ЧИСТОЙ УСТАНОВКИ GSI (RECOVERY -> WIPE -> ЯДРО)"
             echo "===================================================="
-            echo "Шаг 1: Прошиваем совместимый boot для входа в стоковый Recovery / Fastbootd..."
+            STOCK_IMG="/home/zxcpzhatert/RedFox-Builds/boot_stock_recovery.img"
+            if [ ! -f "$STOCK_IMG" ]; then
+                echo "❌ Не найден стоковый образ для рекавери: $STOCK_IMG"
+                continue
+            fi
+            echo "Шаг 1: Выбираем кастомное ядро, которое вернём после прошивки GSI..."
+            select_boot_image || continue
+            CUSTOM_IMG="$SELECTED_IMG"
+
+            echo ""
+            echo "Шаг 2: Прошиваем стоковый boot для входа в Stock Recovery..."
             dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
             if adb get-state 1>/dev/null 2>&1; then
+                echo "🔌 Выключаю телефон через ADB..."
                 adb shell reboot -p 2>/dev/null || adb reboot -p 2>/dev/null
                 sleep 4
             fi
-            echo "👉 Зажмите 2 кнопки (Громкость Вверх + Вниз) для прошивки boot под Recovery..."
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_stock_recovery.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_stock_recovery.img reboot-recovery
+            echo "👉 На выключенном телефоне зажмите 2 кнопки (Громкость Вверх + Вниз) — spd_dump ждёт..."
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a "$STOCK_IMG" w boot_b "$STOCK_IMG" poweroff
+
             echo ""
-            echo "✅ Телефон перезагружается в стоковый Recovery!"
-            echo "👉 В меню Recovery сделайте Wipe Data / Factory Reset (и прошейте GSI через fastbootd, если нужно)."
-            echo "👉 Когда закончите в Recovery — ВЫКЛЮЧИТЕ телефон (Power Off) и нажмите Enter здесь, чтобы вшить ядро RedFox rev18..."
+            echo "===================================================="
+            echo "✅ Стоковый boot прошит, телефон выключен!"
+            echo "1. Зажмите [Питание + Громкость Вверх] (или Вниз), чтобы войти в Stock Recovery."
+            echo "2. В рекавери нажмите [Enter fastboot] -> прошейте систему (fastboot flash system ...)."
+            echo "3. Вернитесь в рекавери -> нажмите [Wipe data/factory reset] -> затем [Power off]."
+            echo "👉 Когда телефон снова ВЫКЛЮЧЕН после вайпа — нажмите Enter здесь..."
+            echo "===================================================="
             read -r
-            echo "Шаг 2: Возвращаем ядро RedFox rev18-Ultimate в boot_a и boot_b..."
+
+            echo "Шаг 3: Вшиваем выбранное кастомное ядро ($(basename "$CUSTOM_IMG")) в boot_a и boot_b..."
             echo "👉 Зажмите 2 кнопки (Громкость Вверх + Вниз) на выключенном телефоне..."
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a "$CUSTOM_IMG" w boot_b "$CUSTOM_IMG" reset
             rm -f /tmp/clean_misc.bin
-            echo "🎉 Готово! Ядро RedFox rev18 прошито, телефон запускается в новую систему!"
+            echo "🎉 Готово! Ядро прошито, телефон запускается в чистую систему!"
             ;;
         0) exit 0 ;;
     esac
