@@ -10,7 +10,7 @@
 
 ## Установка на Arch Linux
 ```bash
-git clone https://github.com
+gh repo clone ZXCPZHatert-RedFox-Dev-RMX3624/RedFox-Flasher
 install -Dm755 RedFox-Flasher/redfox-flasher ~/.local/bin/redfox-flasher
 redfox-flasher
 ```
