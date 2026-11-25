@@ -19,9 +19,10 @@ while true; do
     echo "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     echo "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
     echo "8) 🚑 Прошить ядро (boot_redfox_rev18_signed.img) через BROM (spd_dump)
+9) 🔄 Цикл чистой установки GSI (Сток Boot -> Рекавери/Wipe -> Ядро RedFox rev18)
 0) Выход"
     echo "----------------------------------------------------"
-    read -rp "Выберите действие [0-8]: " CHOICE
+    read -rp "Выберите действие [0-9]: " CHOICE
 
     case "$CHOICE" in
         1)
@@ -115,6 +116,29 @@ while true; do
             fi
             cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
             rm -f /tmp/clean_misc.bin
+            ;;
+        9)
+            echo "===================================================="
+            echo "🔄 ЦИКЛ ЧИСТОЙ УСТАНОВКИ GSI ДЛЯ RMX3624"
+            echo "===================================================="
+            echo "Шаг 1: Прошиваем совместимый boot для входа в стоковый Recovery / Fastbootd..."
+            dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
+            if adb get-state 1>/dev/null 2>&1; then
+                adb shell reboot -p 2>/dev/null || adb reboot -p 2>/dev/null
+                sleep 4
+            fi
+            echo "👉 Зажмите 2 кнопки (Громкость Вверх + Вниз) для прошивки boot под Recovery..."
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_stock_recovery.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_stock_recovery.img reboot-recovery
+            echo ""
+            echo "✅ Телефон перезагружается в стоковый Recovery!"
+            echo "👉 В меню Recovery сделайте Wipe Data / Factory Reset (и прошейте GSI через fastbootd, если нужно)."
+            echo "👉 Когда закончите в Recovery — ВЫКЛЮЧИТЕ телефон (Power Off) и нажмите Enter здесь, чтобы вшить ядро RedFox rev18..."
+            read -r
+            echo "Шаг 2: Возвращаем ядро RedFox rev18-Ultimate в boot_a и boot_b..."
+            echo "👉 Зажмите 2 кнопки (Громкость Вверх + Вниз) на выключенном телефоне..."
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img w boot_b /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
+            rm -f /tmp/clean_misc.bin
+            echo "🎉 Готово! Ядро RedFox rev18 прошито, телефон запускается в новую систему!"
             ;;
         0) exit 0 ;;
     esac
