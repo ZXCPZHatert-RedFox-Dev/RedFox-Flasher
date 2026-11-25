@@ -14,11 +14,11 @@ while true; do
     echo "1) 📊 Живая диагностика телефона по ADB (Ядро, BBR, Яркость)"
     echo "2) 📥 Скачать свежие релизы с GitHub (Ядро v18 + Optimizer v1.4 + Recovery)"
     echo "3) 💾 Сделать резервную копию разделов (boot + vendor_boot + vbmeta)"
-    echo "4) ⚡ Прошить ядро (boot_redfox_rev18_signed.img) через Fastboot"
+    echo "4) ⚡ Прошить ЛЮБОЕ ядро (Кастом / Сток / Свой .img) через Fastboot"
     echo "5) 🛠️  Прошить Red-Fox Recovery (vendor_boot.img / recovery.img)"
     echo "6) 🔄 Перезагрузить телефон (System / Bootloader / Fastbootd / Recovery)"
     echo "7) 🚀 Проверить статус сборки Red-Fox Recovery в облаке"
-    echo "8) 🚑 Прошить ядро (boot_redfox_rev18_signed.img) через BROM (spd_dump)
+    echo "8) 🚑 Прошить ЛЮБОЕ ядро (Кастом / Сток / Свой .img) через BROM (spd_dump)
 9) 🔄 Цикл чистой установки GSI (Сток Boot -> Рекавери/Wipe -> Ядро RedFox rev18)
 0) Выход"
     echo "----------------------------------------------------"
@@ -69,12 +69,23 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         4)
-            IMG="$WORK_DIR/boot_redfox_rev18_signed.img"
-            [ ! -f "$IMG" ] && gh release download v18.0-RedFox-Ultimate --repo "$REPO_KERNEL" -p "boot_redfox_rev18_signed.img" -D "$WORK_DIR" --clobber
-            echo "Переведите телефон в режим Bootloader (Fastboot) и нажмите Enter..."
-            read -r
-            fastboot flash boot "$IMG" && fastboot reboot
-            read -rp "Готово! Нажмите Enter..."
+            select_boot_image || continue
+            select_target_slots
+            if ! fastboot devices | grep -q "fastboot"; then
+                if adb get-state 1>/dev/null 2>&1; then
+                    echo "🔄 Перевожу телефон в Bootloader (Fastboot) через ADB..."
+                    adb reboot bootloader
+                    sleep 6
+                else
+                    echo "👉 Переведите телефон в режим Bootloader (Fastboot) и нажмите Enter..."
+                    read -r
+                fi
+            fi
+            for slot in "${TARGET_SLOTS[@]}"; do
+                echo "⚡ Прошиваю $SELECTED_IMG в $slot..."
+                fastboot flash "$slot" "$SELECTED_IMG"
+            done
+            fastboot reboot
             ;;
         5)
             VIMG=$(find "$WORK_DIR" -name "vendor_boot.img" -o -name "recovery.img" | head -n 1)
@@ -104,17 +115,22 @@ while true; do
             read -rp "Нажмите Enter..."
             ;;
         8)
-            echo "🚑 Прошивка ядра (boot_redfox_rev18_signed.img) через BROM (spd_dump)..."
+            select_boot_image || continue
+            select_target_slots
             dd if=/dev/zero of=/tmp/clean_misc.bin bs=1M count=1 2>/dev/null
             if adb get-state 1>/dev/null 2>&1; then
-                echo "🔌 Автоматически выключаю телефон через ADB (reboot -p)..."
+                echo "🔌 Выключаю телефон через ADB (reboot -p)..."
                 adb shell reboot -p 2>/dev/null || adb reboot -p 2>/dev/null
                 sleep 4
-                echo "👉 Телефон выключен! Теперь просто зажмите 2 кнопки (Громкость Вверх + Вниз) — spd_dump уже ждёт!"
+                echo "👉 Телефон выключен! Зажмите 2 кнопки (Громкость Вверх + Вниз) — spd_dump ждёт..."
             else
                 echo "👉 Выключите телефон, затем зажмите 2 кнопки (Громкость Вверх + Вниз) и подключите кабель."
             fi
-            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec w misc /tmp/clean_misc.bin w boot_a /home/zxcpzhatert/RedFox-Builds/boot_redfox_rev18_signed.img reset
+            WRITE_ARGS="w misc /tmp/clean_misc.bin"
+            for slot in "${TARGET_SLOTS[@]}"; do
+                WRITE_ARGS="$WRITE_ARGS w $slot $SELECTED_IMG"
+            done
+            cd ~/spd_tools/ums9230_bin && sudo ../spreadtrum_flash/spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec $WRITE_ARGS reset
             rm -f /tmp/clean_misc.bin
             ;;
         9)
